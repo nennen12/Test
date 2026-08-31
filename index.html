@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>자연어로 하는 바이브 코딩</title>
+<style>
+/* ═══════════════════════════════════════════════════
+   색·글꼴은 여기만 고치면 전체가 바뀝니다
+   ═══════════════════════════════════════════════════ */
+:root{
+  --bg:#0D141A; --panel:#16212A; --rail:#111A21; --line:#263340;
+  --ink:#EAF1F4; --ink-2:#9FB0BB; --ink-3:#657986;
+  --accent:#4FD1C5;   /* 청록 포인트 */
+  --warm:#E8A33D;     /* 보조 강조 */
+  --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic","Noto Sans KR",sans-serif;
+  --mono:ui-monospace,"SF Mono","D2Coding",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+#app{display:flex;height:100%}
+
+/* ── 좌측 목차 ─────────────────────────────────── */
+#rail{
+  width:212px;flex:0 0 212px;background:var(--rail);border-right:1px solid var(--line);
+  padding:26px 0 18px;display:flex;flex-direction:column;
+}
+#rail .brand{padding:0 20px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
+#rail .brand .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--ink-3);text-transform:uppercase}
+#rail .brand .t{margin-top:6px;font-size:14.5px;font-weight:700;letter-spacing:-.015em;line-height:1.35}
+#rail ol{list-style:none;flex:1;overflow-y:auto}
+#rail button{
+  width:100%;text-align:left;background:none;border:0;cursor:pointer;color:var(--ink-3);
+  font-family:var(--sans);font-size:13.5px;line-height:1.4;padding:9px 20px 9px 18px;
+  border-left:2px solid transparent;display:flex;gap:9px;
+}
+#rail button .n{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;padding-top:2px}
+#rail button:hover{color:var(--ink)}
+#rail button.on{color:var(--ink);font-weight:600;border-left-color:var(--accent);background:#16212A}
+#rail .foot{padding:14px 20px 0;border-top:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink-3);line-height:1.8}
+
+/* ── 무대 ──────────────────────────────────────── */
+#main{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;min-width:0;position:relative}
+#stage{
+  width:min(100%, calc((100vh - 48px) * 16 / 9));
+  aspect-ratio:16/9;background:var(--bg);position:relative;overflow:hidden;
+}
+.s{position:absolute;inset:0;padding:5.6% 6.4%;display:none;flex-direction:column;justify-content:center}
+.s.on{display:flex}
+.s.pad0{padding:0}
+
+.k{font-family:var(--mono);font-size:clamp(10px,1.05vw,13px);letter-spacing:.2em;color:var(--accent);text-transform:uppercase}
+h1{font-size:clamp(30px,4.6vw,62px);font-weight:800;letter-spacing:-.04em;line-height:1.04}
+h1 em{font-style:normal;color:var(--accent)}
+h2{margin-top:.35em;font-size:clamp(24px,3.5vw,46px);font-weight:800;letter-spacing:-.035em;line-height:1.1}
+.p{margin-top:.85em;font-size:clamp(14px,1.65vw,23px);line-height:1.68;color:var(--ink-2);max-width:46ch}
+.p b,.p strong{color:var(--ink);font-weight:600}
+.big{margin-top:.5em;font-size:clamp(20px,2.6vw,34px);font-weight:700;letter-spacing:-.025em;line-height:1.35;color:var(--ink);max-width:30ch}
+
+ul{margin-top:1.1em;list-style:none;max-width:44ch}
+li{position:relative;padding-left:1.05em;margin-top:.62em;font-size:clamp(14px,1.6vw,22px);line-height:1.6;color:var(--ink-2)}
+li::before{content:"";position:absolute;left:0;top:.72em;width:.42em;height:2px;background:var(--accent)}
+li b{color:var(--ink);font-weight:600}
+
+.grid{margin-top:1.2em;display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:52ch}
+.card{border:1px solid var(--line);background:var(--panel);padding:14px 16px}
+.card .ck{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.card.yes{border-color:var(--accent)}
+.card.yes .ck{color:var(--accent)}
+.card .cv{margin-top:6px;font-size:clamp(13px,1.4vw,18px);line-height:1.5;color:var(--ink)}
+
+.ask{
+  margin-top:1.1em;background:var(--panel);border-left:3px solid var(--accent);
+  padding:14px 18px;font-family:var(--mono);font-size:clamp(12px,1.25vw,17px);
+  line-height:1.75;color:var(--ink);max-width:48ch;
+}
+.stat{margin-top:1.2em;display:flex;gap:clamp(20px,3vw,56px);flex-wrap:wrap}
+.stat .v{font-size:clamp(28px,4vw,54px);font-weight:800;letter-spacing:-.04em;color:var(--accent);line-height:1}
+.stat .l{margin-top:6px;font-family:var(--mono);font-size:clamp(9.5px,.95vw,12px);letter-spacing:.16em;color:var(--ink-3)}
+
+table{margin-top:1.1em;border-collapse:collapse;width:100%;max-width:56ch}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);font-size:clamp(12px,1.35vw,19px);vertical-align:top}
+th{font-family:var(--mono);font-size:clamp(9px,.9vw,11.5px);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+td{color:var(--ink-2)}
+td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+
+.quote{margin-top:1em;border-left:2px solid var(--line);padding-left:20px;max-width:44ch}
+.quote .q{font-size:clamp(15px,1.9vw,26px);line-height:1.5;color:var(--ink)}
+.quote .src{margin-top:10px;font-family:var(--mono);font-size:clamp(9.5px,.95vw,12px);letter-spacing:.12em;color:var(--ink-3)}
+
+.warn{margin-top:1.1em;border:1px solid var(--warm);padding:14px 18px;max-width:48ch}
+.warn .wk{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--warm)}
+.warn .wv{margin-top:6px;font-size:clamp(13px,1.45vw,19px);line-height:1.55;color:var(--ink)}
+
+/* 표지 슬라이드 */
+.cover{display:grid;grid-template-rows:1fr auto;height:100%}
+.cover .frame{position:relative;background:#0A1014;overflow:hidden}
+.cover iframe{width:100%;height:100%;border:0;display:block}
+.cover .hint{
+  position:absolute;right:14px;bottom:12px;font-family:var(--mono);
+  font-size:clamp(9px,.9vw,11.5px);letter-spacing:.14em;color:#9FB0BB;
+  background:rgba(8,12,15,.72);padding:6px 11px;pointer-events:none;
+}
+.cover .bar{padding:3.2% 4.2%;border-top:1px solid var(--line);display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.cover .bar .sub{font-size:clamp(12px,1.3vw,18px);color:var(--ink-2);max-width:40ch;line-height:1.55}
+
+/* 조작부 */
+#hud{position:absolute;right:26px;bottom:20px;display:flex;align-items:center;gap:14px;z-index:5}
+#hud .num{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;color:var(--ink-3)}
+#hud button{
+  background:none;border:1px solid var(--line);color:var(--ink-2);cursor:pointer;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:7px 12px;
+}
+#hud button:hover{border-color:var(--accent);color:var(--ink)}
+#bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line);z-index:5}
+#bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s ease}
+
+/* 크게 보기 */
+body.zen #rail{display:none}
+body.zen #main{padding:0}
+body.zen #stage{width:100%;height:100%;aspect-ratio:auto}
+body.zen #hud{right:14px;bottom:14px}
+
+@media (max-width:820px){
+  #rail{display:none}
+  #main{padding:10px}
+  #stage{width:100%;height:100%;aspect-ratio:auto}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ 좌측 목차 ══ -->
+  <nav id="rail" aria-label="목차">
+    <div class="brand">
+      <div class="k">교육 자료 · 2026</div>
+      <div class="t">자연어로 하는<br>바이브 코딩</div>
+    </div>
+    <ol id="chapters"></ol>
+    <div class="foot">← → 넘기기<br>F 크게 보기</div>
+  </nav>
+
+  <!-- ══ 슬라이드 ══ -->
+  <div id="main">
+    <div id="stage">
+
+      <!-- 00 표지 -->
+      <section class="s pad0" data-ch="0">
+        <div class="cover">
+          <div class="frame">
+            <iframe src="office.html" title="사무실 3D 데모" allow="fullscreen"></iframe>
+            <div class="hint">클릭한 뒤 W A S D 로 걸어보세요</div>
+          </div>
+          <div class="bar">
+            <h1>자연어로 하는 <em>바이브 코딩</em></h1>
+            <div class="sub">이 사무실은 코드를 한 줄도 쓰지 않고 만들었습니다.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 01 왜 지금인가 ══ -->
+      <section class="s" data-ch="1">
+        <div class="k">01 · 왜 지금인가</div>
+        <h2>아이디어는 늘 있었습니다</h2>
+        <div class="p">"이런 게 있으면 편할 텐데"는 매일 나옵니다.<br>문제는 그 다음이었습니다.</div>
+      </section>
+
+      <section class="s" data-ch="1">
+        <div class="k">01 · 왜 지금인가</div>
+        <h2>거기서 멈췄습니다</h2>
+        <div class="p">코드를 못 짜면 아이디어는 아이디어로 끝났습니다.<br>실제 물건이 되려면 <b>개발자가 필요했습니다.</b></div>
+      </section>
+
+      <section class="s" data-ch="1">
+        <div class="k">01 · 왜 지금인가</div>
+        <h2>바뀐 것은 하나입니다</h2>
+        <div class="big">원하는 것을 문장으로 적으면<br>동작하는 결과가 나옵니다.</div>
+        <div class="p">문법을 외울 필요도, 에러 메시지를 해독할 필요도 없습니다.</div>
+      </section>
+
+      <section class="s" data-ch="1">
+        <div class="k">01 · 왜 지금인가</div>
+        <h2>지금 필요한 능력</h2>
+        <div class="big">코딩 실력이 아니라<br>정확하게 말하는 능력</div>
+        <div class="p">장비 이상을 설명하고, 조건을 정리하고, 근거를 대는 일.<br><b>우리가 이미 매일 하는 일입니다.</b></div>
+      </section>
+
+      <!-- ══ 02 바이브 코딩이란 ══ -->
+      <section class="s" data-ch="2">
+        <div class="k">02 · 바이브 코딩이란</div>
+        <h2>정의</h2>
+        <div class="big">말로 설명하고, 결과를 보고,<br>다시 고친다.</div>
+        <div class="p">코드를 직접 쓰지 않고 AI가 만들게 하는 방식입니다.</div>
+      </section>
+
+      <section class="s" data-ch="2">
+        <div class="k">02 · 바이브 코딩이란</div>
+        <h2>어디서 나온 말인가</h2>
+        <div class="p">2025년 2월, 테슬라 AI 총괄과 OpenAI 창립 멤버를 지낸 <b>안드레이 카파시</b>가 X에 올린 짧은 글에서 시작됐습니다.</div>
+        <div class="quote">
+          <div class="q">코드가 존재한다는 사실조차 잊어버리는 방식</div>
+          <div class="src">카파시의 표현 — 요약</div>
+        </div>
+      </section>
+
+      <section class="s" data-ch="2">
+        <div class="k">02 · 바이브 코딩이란</div>
+        <h2>1년 만에 표준어가 됐습니다</h2>
+        <div class="stat">
+          <div><div class="v">2025.2</div><div class="l">용어 등장</div></div>
+          <div><div class="v">올해의 단어</div><div class="l">콜린스 사전 2025</div></div>
+          <div><div class="v">2026</div><div class="l">업계 표준 작업 방식</div></div>
+        </div>
+      </section>
+
+      <section class="s" data-ch="2">
+        <div class="k">02 · 바이브 코딩이란</div>
+        <h2>핵심은 코드를 안 읽는 것</h2>
+        <div class="quote">
+          <div class="q">코드를 전부 AI가 썼더라도 직접 읽고 테스트하고 이해했다면, 그건 AI를 타자기로 쓴 것이다.</div>
+          <div class="src">개발자 사이먼 윌리슨의 구분 — 요약</div>
+        </div>
+        <div class="p">결과만 보고 판단하고, 마음에 안 들면 다시 말합니다.</div>
+      </section>
+
+      <section class="s" data-ch="2">
+        <div class="k">02 · 바이브 코딩이란</div>
+        <h2>다섯 단계의 반복</h2>
+        <ul>
+          <li><b>설명한다</b> — "CSV를 읽어서 평균을 내줘"</li>
+          <li><b>AI가 만든다</b> — 첫 결과가 나온다</li>
+          <li><b>돌려본다</b> — 의도대로 되는지 확인</li>
+          <li><b>말해준다</b> — "파일 없을 때 처리도 넣어줘"</li>
+          <li><b>반복한다</b> — 될 때까지</li>
+        </ul>
+      </section>
+
+      <section class="s" data-ch="2">
+        <div class="k">02 · 바이브 코딩이란</div>
+        <h2>기존 개발과 무엇이 다른가</h2>
+        <table>
+          <tr><th>구분</th><th>기존 개발</th><th>바이브 코딩</th></tr>
+          <tr><td>시작</td><td>요구사항 문서</td><td>말로 설명</td></tr>
+          <tr><td>과정</td><td>설계 → 구현 → 테스트</td><td>말한다 → 본다 → 고친다</td></tr>
+          <tr><td>수정 비용</td><td>뒤로 갈수록 커짐</td><td>거의 없음</td></tr>
+          <tr><td>필요한 것</td><td>문법과 도구 지식</td><td>설명하는 능력</td></tr>
+        </table>
+      </section>
+
+      <section class="s" data-ch="2">
+        <div class="k">02 · 바이브 코딩이란</div>
+        <h2>프롬프트보다 맥락</h2>
+        <div class="p">요청 문장을 다듬는 것보다, <b>배경을 알려주는 쪽</b>이 결과를 더 크게 바꿉니다.</div>
+        <div class="ask">
+          사내망 PC라 인터넷에서 뭘 받아오면 안 돼.<br>
+          파일 하나로 끝나게 만들어줘.<br>
+          엑셀은 사번 · 이름 · 부서 순서야.
+        </div>
+      </section>
+
+      <section class="s" data-ch="2">
+        <div class="k">02 · 바이브 코딩이란</div>
+        <h2>가장 흔한 오해</h2>
+        <div class="big">한 번에 완성되지 않습니다.</div>
+        <div class="p">앞의 사무실도 <b>40번 넘게</b> 고쳤습니다.<br>고치는 것이 실패가 아니라, 고치는 것이 이 방식입니다.</div>
+      </section>
+
+      <!-- ══ 03 만든 과정 ══ -->
+      <section class="s" data-ch="3">
+        <div class="k">03 · 만든 과정</div>
+        <h2>시작은 한 문장이었습니다</h2>
+        <div class="ask">우리 사무실을 3D로 걸어다닐 수 있게 만들어줘</div>
+        <div class="p">도면은 없었습니다. 복도 방향과 좌석 배치를 <b>글로만</b> 설명했습니다.</div>
+      </section>
+
+      <section class="s" data-ch="3">
+        <div class="k">03 · 만든 과정</div>
+        <h2>첫 결과는 실패였습니다</h2>
+        <div class="big">캐릭터가 제자리에서만 움직였습니다.</div>
+        <div class="p">원인은 <b>시작 위치가 책상 안쪽</b>이라 사방이 막혀 있던 것.<br>"안 움직여요" 한마디로 찾아냈습니다.</div>
+      </section>
+
+      <section class="s" data-ch="3">
+        <div class="k">03 · 만든 과정</div>
+        <h2>중간에 나온 실패들</h2>
+        <ul>
+          <li>파티션이 <b>책상을 뚫고</b> 바닥까지 내려감</li>
+          <li>통로가 좁아 <b>사람이 지나갈 수 없음</b></li>
+          <li>메뉴가 <b>계속 화면에 떠 있음</b></li>
+          <li>자리를 지웠는데 <b>캐비넷만 남음</b></li>
+        </ul>
+        <div class="p">전부 <b>직접 걸어보다가</b> 발견했습니다.</div>
+      </section>
+
+      <section class="s" data-ch="3">
+        <div class="k">03 · 만든 과정</div>
+        <h2>결과</h2>
+        <div class="stat">
+          <div><div class="v">40회</div><div class="l">요청 횟수</div></div>
+          <div><div class="v">0줄</div><div class="l">직접 쓴 코드</div></div>
+          <div><div class="v">반나절</div><div class="l">소요 시간</div></div>
+        </div>
+        <div class="p">특별한 도구도, 사전 지식도 없었습니다.</div>
+      </section>
+
+      <!-- ══ 04 요청 쓰는 법 ══ -->
+      <section class="s" data-ch="4">
+        <div class="k">04 · 요청 쓰는 법</div>
+        <h2>다섯 가지만 지키면 됩니다</h2>
+        <ul>
+          <li>기준점을 정한다</li>
+          <li>숫자를 준다</li>
+          <li>한 번에 하나씩</li>
+          <li>결과를 보고 말한다</li>
+          <li>맥락을 먼저 준다</li>
+        </ul>
+      </section>
+
+      <section class="s" data-ch="4">
+        <div class="k">04 · 요청 쓰는 법 · 하나</div>
+        <h2>기준점을 정한다</h2>
+        <div class="grid">
+          <div class="card"><div class="ck">애매함</div><div class="cv">파티션을 왼쪽으로 옮겨줘</div></div>
+          <div class="card yes"><div class="ck">명확함</div><div class="cv">복도에서 남쪽을 볼 때 기준으로 왼쪽으로</div></div>
+        </div>
+        <div class="p">"왼쪽"은 누구 기준인지 알 수 없습니다.</div>
+      </section>
+
+      <section class="s" data-ch="4">
+        <div class="k">04 · 요청 쓰는 법 · 둘</div>
+        <h2>숫자를 준다</h2>
+        <div class="grid">
+          <div class="card"><div class="ck">애매함</div><div class="cv">글씨를 조금 크게</div></div>
+          <div class="card yes"><div class="ck">명확함</div><div class="cv">제목 글씨를 1.5배로</div></div>
+        </div>
+      </section>
+
+      <section class="s" data-ch="4">
+        <div class="k">04 · 요청 쓰는 법 · 셋</div>
+        <h2>한 번에 하나씩</h2>
+        <div class="big">다섯 개를 한꺼번에 바꾸면<br>어디서 틀렸는지 못 찾습니다.</div>
+        <div class="p">하나 바꾸고 확인하는 편이 결국 더 빠릅니다.</div>
+      </section>
+
+      <section class="s" data-ch="4">
+        <div class="k">04 · 요청 쓰는 법 · 넷</div>
+        <h2>결과를 보고 말한다</h2>
+        <div class="grid">
+          <div class="card"><div class="ck">애매함</div><div class="cv">안 되는데요</div></div>
+          <div class="card yes"><div class="ck">명확함</div><div class="cv">버튼을 눌러도 화면이 그대로예요</div></div>
+        </div>
+      </section>
+
+      <section class="s" data-ch="4">
+        <div class="k">04 · 요청 쓰는 법 · 다섯</div>
+        <h2>잘 된 버전은 저장해둔다</h2>
+        <div class="p">고치다 보면 더 나빠질 때가 있습니다.<br>마음에 든 시점의 파일을 <b>따로 남겨두세요.</b></div>
+      </section>
+
+      <!-- ══ 05 AI가 틀릴 때 ══ -->
+      <section class="s" data-ch="5">
+        <div class="k">05 · AI가 틀릴 때</div>
+        <h2>AI는 자신 있게 틀립니다</h2>
+        <div class="big">말투로는 알 수 없습니다.</div>
+        <div class="p">맞았을 때와 틀렸을 때의 어조가 똑같습니다.</div>
+      </section>
+
+      <section class="s" data-ch="5">
+        <div class="k">05 · AI가 틀릴 때</div>
+        <h2>확인하는 방법</h2>
+        <ul>
+          <li><b>직접 돌려본다</b> — 앞의 버그는 전부 이렇게 찾았습니다</li>
+          <li><b>숫자를 검산한다</b> — 합계, 단위, 자릿수</li>
+          <li><b>검증을 시킨다</b> — "이게 맞는지 확인해줘"</li>
+          <li><b>작게 나눈다</b> — 큰 결과를 통째로 믿지 않기</li>
+        </ul>
+      </section>
+
+      <section class="s" data-ch="5">
+        <div class="k">05 · AI가 틀릴 때</div>
+        <h2>잘 도는 것과 안전한 것은 다릅니다</h2>
+        <div class="p">조지아공대 연구팀은 <b>4만 건이 넘는 보안 권고</b>를 훑어 AI가 만든 코드에서 반복되는 결함을 정리했습니다.</div>
+        <div class="p">Databricks 레드팀도 <b>정상 동작하는 앱</b> 안에 심각한 결함이 섞여 들어간 사례를 공개했습니다.</div>
+      </section>
+
+      <section class="s" data-ch="5">
+        <div class="k">05 · AI가 틀릴 때</div>
+        <h2>그대로 믿으면 안 되는 것</h2>
+        <ul>
+          <li>사내 규격 · 기준 수치</li>
+          <li>안전과 직결된 판단</li>
+          <li>최신 정보</li>
+          <li>여러 사람이 쓰거나 데이터를 다루는 코드</li>
+        </ul>
+        <div class="warn">
+          <div class="wk">보안</div>
+          <div class="wv">사내 데이터 · 도면 · 수율 정보는 외부 AI 서비스에 넣지 않습니다. 사내에서 승인된 도구만 사용하세요.</div>
+        </div>
+      </section>
+
+      <!-- ══ 06 우리 일에 ══ -->
+      <section class="s" data-ch="6">
+        <div class="k">06 · 우리 일에</div>
+        <h2>도구는 크게 두 갈래입니다</h2>
+        <table>
+          <tr><th>갈래</th><th>성격</th><th>예</th></tr>
+          <tr><td>대화형</td><td>말로 시키고 결과를 받음</td><td>Claude, ChatGPT</td></tr>
+          <tr><td>편집기형</td><td>코드 파일을 직접 다룸</td><td>Cursor, Claude Code</td></tr>
+        </table>
+        <div class="p">코딩을 안 해봤다면 <b>대화형부터</b> 시작하면 됩니다.</div>
+      </section>
+
+      <section class="s" data-ch="6">
+        <div class="k">06 · 우리 일에</div>
+        <h2>바로 떠오르는 후보</h2>
+        <ul>
+          <li>매번 같은 양식으로 정리하는 <b>보고서</b></li>
+          <li>로그 · 알람을 훑어보는 <b>간단한 뷰어</b></li>
+          <li>계측 결과를 바로 보는 <b>빠른 그래프</b></li>
+          <li>교대 인수인계 <b>체크리스트</b></li>
+          <li>신입 온보딩용 <b>자리 안내</b></li>
+        </ul>
+      </section>
+
+      <section class="s" data-ch="6">
+        <div class="k">06 · 우리 일에</div>
+        <h2>고르는 기준 세 가지</h2>
+        <table>
+          <tr><th>조건</th><th>이유</th></tr>
+          <tr><td>내가 결과를 안다</td><td>맞았는지 판단할 수 있어야 합니다</td></tr>
+          <tr><td>혼자 쓴다</td><td>남이 쓰면 검토 부담이 커집니다</td></tr>
+          <tr><td>틀려도 안 위험하다</td><td>안전 · 품질 판정에는 쓰지 않습니다</td></tr>
+        </table>
+      </section>
+
+      <section class="s" data-ch="6">
+        <div class="k">06 · 우리 일에</div>
+        <h2>첫 번째 후보를 고르는 법</h2>
+        <div class="big">"이거 매번 손으로 하는데<br>귀찮다"</div>
+        <div class="p">그렇게 느끼는 일이 있으면 그게 시작점입니다.</div>
+      </section>
+
+      <!-- ══ 07 시작하기 ══ -->
+      <section class="s" data-ch="7">
+        <div class="k">07 · 시작하기</div>
+        <h2>첫 요청은 이 정도면 충분합니다</h2>
+        <div class="ask">
+          엑셀 파일 두 개를 비교해서 값이 다른 셀만 뽑아줘.<br>
+          결과는 새 시트에 항목명이랑 같이 정리해줘.
+        </div>
+      </section>
+
+      <section class="s" data-ch="7">
+        <div class="k">07 · 시작하기</div>
+        <h2>처음 한 시간</h2>
+        <table>
+          <tr><th>시간</th><th>할 일</th></tr>
+          <tr><td>10분</td><td>귀찮은 반복 작업 하나를 고른다</td></tr>
+          <tr><td>10분</td><td>무엇을 넣으면 무엇이 나와야 하는지 적는다</td></tr>
+          <tr><td>20분</td><td>요청하고 결과를 받아본다</td></tr>
+          <tr><td>20분</td><td>이상한 곳을 말하고 세 번 고친다</td></tr>
+        </table>
+      </section>
+
+      <section class="s" data-ch="7">
+        <div class="k">07 · 시작하기</div>
+        <h2>한 가지만 가져가신다면</h2>
+        <div class="big">완성된 결과를 받는 것이 아니라<br>어설픈 결과를 고쳐나가는 것.</div>
+        <div class="p">고치는 속도가 곧 실력입니다.</div>
+      </section>
+
+      <section class="s" data-ch="7">
+        <div class="k">07 · 시작하기</div>
+        <h1>오늘 본 것 전부<br><em>같은 방법</em>으로 만들었습니다</h1>
+        <div class="p">사무실도, 이 슬라이드도.</div>
+      </section>
+
+      <div id="bar"><i id="barfill"></i></div>
+    </div>
+
+    <div id="hud">
+      <span class="num" id="num">1 / 1</span>
+      <button id="prev" aria-label="이전 슬라이드">←</button>
+      <button id="next" aria-label="다음 슬라이드">→</button>
+      <button id="zen">크게 보기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var CH = ['표지','왜 지금인가','바이브 코딩이란','만든 과정','요청 쓰는 법',
+            'AI가 틀릴 때','우리 일에','시작하기'];
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.s'));
+  var chapters = document.getElementById('chapters');
+  var num = document.getElementById('num');
+  var fill = document.getElementById('barfill');
+  var i = 0;
+
+  var firstOf = {};
+  slides.forEach(function(s, idx){
+    var c = +s.dataset.ch;
+    if(firstOf[c] === undefined) firstOf[c] = idx;
+  });
+
+  CH.forEach(function(name, c){
+    if(firstOf[c] === undefined) return;
+    var li = document.createElement('li');
+    var b = document.createElement('button');
+    b.innerHTML = '<span class="n">' + (c === 0 ? '—' : ('0' + c)) + '</span><span>' + name + '</span>';
+    b.onclick = function(){ go(firstOf[c]); };
+    li.appendChild(b); chapters.appendChild(li);
+  });
+  var btns = Array.prototype.slice.call(chapters.querySelectorAll('button'));
+
+  function go(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, idx){ s.classList.toggle('on', idx === i); });
+    var c = +slides[i].dataset.ch;
+    btns.forEach(function(b, k){ b.classList.toggle('on', k === c); });
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    fill.style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+
+  document.getElementById('prev').onclick = function(){ go(i - 1); };
+  document.getElementById('next').onclick = function(){ go(i + 1); };
+  document.getElementById('zen').onclick = function(){ document.body.classList.toggle('zen'); };
+
+  addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown'){ go(i + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ go(i - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(slides.length - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.body.classList.toggle('zen'); }
+  });
+
+  go(0);
+})();
+</script>
+</body>
+</html>
