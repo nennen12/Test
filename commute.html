@@ -922,6 +922,16 @@ const el={gate:document.getElementById('gate'),go:document.getElementById('go'),
   act:document.getElementById('act'),fade:document.getElementById('fade')};
 const pos=new THREE.Vector3(-WALK_W/2,EYE,-m(정류장.거리)+4);
 let yaw=0,pitch=0,height=EYE;
+// 4층 사무실에서 엘리베이터로 내려온 경우: C5 1층 엘리베이터 안에서 시작
+const FROM_OFFICE = new URLSearchParams(location.search).get('from')==='office';
+if(FROM_OFFICE && ELEV.length){
+  const ev=ELEV[0]; pos.set(ev.x-1.0, EYE, ev.z); yaw=-Math.PI/2; ev.open=true; ev.t=1;
+  el.gate.style.background='#000';
+  el.gate.querySelector('.eyebrow').textContent='1F · 도착';
+  el.gate.querySelector('h1').innerHTML='1층 로비에<br><em>도착</em>했습니다';
+  el.gate.querySelector('p').textContent='엘리베이터 문이 열립니다. 내려서 로비를 지나 식당이나 정문으로 가보세요.';
+  el.go.textContent='내리기';
+}
 const R=0.35,keys=Object.create(null);
 let locked=false,started=false,bob=0,flying=false;
 function hits(x,z){

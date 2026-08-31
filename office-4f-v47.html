@@ -44,6 +44,14 @@
     background:rgba(14,17,19,.82);backdrop-filter:blur(8px);padding:12px 14px;
     display:flex;flex-direction:column;gap:6px;min-width:220px}
   #act[hidden], #say[hidden]{display:none}
+  #down{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);z-index:14;
+    background:rgba(241,239,234,.96);color:var(--ink);padding:10px 18px;font-size:14px;font-weight:600;
+    box-shadow:0 12px 30px rgba(0,0,0,.3)}
+  #down[hidden]{display:none}
+  #fade{position:absolute;inset:0;z-index:40;background:#000;opacity:0;pointer-events:none;
+    transition:opacity .7s ease;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:64px;font-weight:700;color:#4FD1C5;letter-spacing:.25em}
+  #fade.on{opacity:1}
   #act .who{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
     color:var(--amber);margin-bottom:4px}
   #act .opt{display:flex;align-items:center;gap:10px;background:transparent;border:0;
@@ -76,6 +84,8 @@
     <button class="opt" data-a="surprise"><b>3</b> 놀래키기</button>
   </div>
   <div id="say" hidden></div>
+  <div id="down" hidden>Space — 1층으로 내려가기</div>
+  <div id="fade">1F</div>
   <div id="pop"><div class="tag" id="popTag"></div><h2 id="popTitle"></h2><p id="popBody"></p></div>
   <div id="gate">
     <div class="eyebrow">Vibe Coding · Live Demo</div>
@@ -839,7 +849,11 @@ function outOfBounds(x,z){
   const b=(x>=-38.6&&x<=-29.6&&z>=-11.6&&z<=2.6);
   return !(a||b);
 }
-addEventListener('keydown',e=>{keys[e.code]=true; if(started&&e.code==='Space')e.preventDefault();});
+addEventListener('keydown',e=>{keys[e.code]=true; if(started&&e.code==='Space'){e.preventDefault(); if(nearElevDoor && !goingDown) startDown();}});
+// ═══ 엘리베이터로 1층(출근길)으로 돌아가기 ═══
+let nearElevDoor=false, goingDown=false, downT=0;
+const elDown=document.getElementById('down'), elFade=document.getElementById('fade');
+function startDown(){ goingDown=true; downT=0; elDown.hidden=true; }
 addEventListener('keyup',e=>{keys[e.code]=false;});
 canvas.addEventListener('click',()=>{ if(started&&!locked) canvas.requestPointerLock(); });
 document.addEventListener('pointerlockchange',()=>{ locked=document.pointerLockElement===canvas; });
@@ -1116,6 +1130,13 @@ function tick(){
     if(np) el.actWho.textContent = np.name ? np.name : '가까이 있는 사람';
   }
   if(sayTimer>0){ sayTimer-=dt; if(sayTimer<=0) el.say.hidden=true; }
+  nearElevDoor = started && pos.x<-37.0 && Math.abs(pos.z)<1.6;          // 엘리베이터 문 앞
+  elDown.hidden = !nearElevDoor || goingDown;
+  if(goingDown){
+    downT+=dt;
+    if(downT>0.3) elFade.classList.add('on');
+    if(downT>1.6 && downT<99){ downT=100; location.href='commute.html?from=office'; }
+  }
 
   let near=null,best=1e9;
   for(let i=0;i<SPOTS.length;i++){ const s=SPOTS[i],d=Math.hypot(pos.x-s.x,pos.z-s.z);
